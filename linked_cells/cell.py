@@ -32,9 +32,10 @@ class Cell(object, metaclass=ABCMeta):
         self.cell_center = np.array([lx + 0.5 * self.side_length, ly + 0.5 * self.side_length])
         self.cell_index = cell_index
         self.neighbor_cell_index = []
-        self.create_neighbor_cell_index(neighbor_delta_coordinate, domain=domain)
+        self.create_neighbor_cell_index(neighbor_delta_coordinate, domain=domain, a=a)
                 
-    def create_neighbor_cell_index(self, neighbor_delta_coordinate, domain=1):
+    # REMARK: I changed the function signature to also forward the variable a
+    def create_neighbor_cell_index(self, neighbor_delta_coordinate, domain=1, a=1):
         """Creates neighbor cell index for the current cell
         Parameters
         ----------
@@ -57,12 +58,50 @@ class Cell(object, metaclass=ABCMeta):
         cell_index_x = self.cell_index % num_cells_per_axis
         cell_index_y = (self.cell_index - cell_index_x) / num_cells_per_axis
 
+        # Add trivial cells in x and y
+        for offset_index in range(1, a+1):
+            # positive x direction
+            if cell_index_x + offset_index < num_cells_per_axis:
+                self.neighbor_cell_index.append(self.cell_index + offset_index)
+            # negative x direction
+            if cell_index_x - offset_index >= 0:
+                self.neighbor_cell_index.append(self.cell_index - offset_index)
+            # positive y direction
+            if cell_index_y + offset_index < num_cells_per_axis:
+                self.neighbor_cell_index.append(self.cell_index + offset_index * num_cells_per_axis)
+            # negative y direction
+            if cell_index_y - offset_index >= 0:
+                self.neighbor_cell_index.append(self.cell_index - offset_index * num_cells_per_axis)
+
+        # Add non trivial neighbor cells for each quadrant
+        # Row major ordering!
         for neighbor_offset_index in neighbor_delta_coordinate:
+            # 1st quadrant
             neighbor_index_x = cell_index_x + neighbor_offset_index[0]
             neighbor_index_y = cell_index_y + neighbor_offset_index[1]
             if neighbor_index_x < num_cells_per_axis and neighbor_index_y < num_cells_per_axis:
-                # This is the index in the list
-                neighbor_index = self.cell_index + neighbor_offset_index[0] * num_cells_per_axis + neighbor_offset_index[1]
+                neighbor_index = self.cell_index + neighbor_offset_index[0] + neighbor_offset_index[1] * num_cells_per_axis
+                self.neighbor_cell_index.append(neighbor_index)
+
+            # 2nd quadrant
+            neighbor_index_x = cell_index_x - neighbor_offset_index[0]
+            neighbor_index_y = cell_index_y + neighbor_offset_index[1]
+            if neighbor_index_x >= 0 and neighbor_index_y < num_cells_per_axis:
+                neighbor_index = self.cell_index - neighbor_offset_index[0] + neighbor_offset_index[1] * num_cells_per_axis
+                self.neighbor_cell_index.append(neighbor_index)
+            
+            # 3rd quadrant
+            neighbor_index_x = cell_index_x - neighbor_offset_index[0]
+            neighbor_index_y = cell_index_y - neighbor_offset_index[1]
+            if neighbor_index_x >= 0 and neighbor_index_y >= 0:
+                neighbor_index = self.cell_index - neighbor_offset_index[0] - neighbor_offset_index[1] * num_cells_per_axis
+                self.neighbor_cell_index.append(neighbor_index)
+
+            # 4th quadrant
+            neighbor_index_x = cell_index_x + neighbor_offset_index[0]
+            neighbor_index_y = cell_index_y - neighbor_offset_index[1]
+            if neighbor_index_x < num_cells_per_axis and neighbor_index_y >= 0:
+                neighbor_index = self.cell_index + neighbor_offset_index[0] - neighbor_offset_index[1] * num_cells_per_axis
                 self.neighbor_cell_index.append(neighbor_index)
 
         ############## Task 1.2 ends ##################

@@ -39,7 +39,21 @@ class Cell_1(Cell):
             List of all "Particle" objects
         """
         ############## Task 3.1 begins ################
+        # Implements the slow O(n^2) affinity based calculation
+        # TODO: Use Newton's 3rd law
 
+        # Over all particles in the current cell
+        for particle_id in self.particle_index:
+            # Over all particles in the current cell
+            for neighbor_id in self.particle_index:
+                # Ignore the potential between the particle and itself -> leads
+                # to division by zero in the potential
+                if particle_id != neighbor_id:
+                    distance = list_particles[particle_id].distance(
+                        list_particles[neighbor_id]
+                    )
+                    list_particles[particle_id].phi +=\
+                        utils.lj_potential(distance)
         ############## Task 3.1 ends ################
     
     def p2p_neigbor_cells(self, list_particles, list_cells):
@@ -53,7 +67,17 @@ class Cell_1(Cell):
             List of all cells
         """
         ############## Task 3.2 begins ################
-
+        # Over all particles inside the current cell
+        for particle_id in self.particle_index:
+            # Over all cells that are neighbors of the current cell
+            for neighbor_cell_id in self.neighbor_cell_index:
+                # Over all particles in the neighboring cell
+                for neighbor_particle_id in list_cells[neighbor_cell_id].particle_index:
+                    distance = list_particles[particle_id].distance(
+                        list_particles[neighbor_particle_id]
+                    )
+                    list_particles[particle_id].phi +=\
+                        utils.lj_potential(distance)
         ############## Task 3.2 ends ################
                 
     def calculate_potential(self, list_particles, list_cells):
@@ -67,7 +91,8 @@ class Cell_1(Cell):
             List of all cells
         """
         ############## Task 3.3 begins ################
-
+        self.p2p_self(list_particles)
+        self.p2p_neigbor_cells(list_particles, list_cells)
         ############## Task 3.3 ends ################
             
     def add_particle(self, particle_index):
@@ -113,8 +138,25 @@ def get_list_cell(r_c, neighbor_delta_coordinate, domain=1.0, a=1):
     """
     list_cells = []
     side_length = r_c / a
-    ############## Task 2 begins ################
-    
+    ############## Task 2 begins ################ 
+    # The domain size might not necessarily be an integer multiple of the cutoff
+    # radius
+    num_cells_per_axis = int(np.ceil(domain / side_length))
+    # We have a two-dimensional domain
+    num_cells_total = num_cells_per_axis**2
+
+    for cell_index_x in range(num_cells_per_axis):
+        for cell_index_y in range(num_cells_per_axis):
+            # Instantiate a new Cell_1 object and append it to the cell list
+            list_cells.append(Cell_1(
+                lx=cell_index_x*side_length,
+                ly=cell_index_y*side_length,
+                r_c=r_c,
+                cell_index=cell_index_x*num_cells_per_axis + cell_index_y,
+                neighbor_delta_coordinate=neighbor_delta_coordinate,
+                a=a,
+                domain=domain,
+            ))
     ############## Task 2 ends ################
     return list_cells
 
@@ -136,6 +178,15 @@ def assign_particle_to_cell(list_particles, list_cells, r_c, domain=1, a=1):
     """
     side_length = r_c / a
     ############## Task 4 begins ################
+    num_cells_per_axis = int(np.ceil(domain / side_length))
+    for particle_id, particle in enumerate(list_particles):
+        # Calculate the cell the particle belongs to by dividing its position in
+        # the x-y-plain by the side_length of a cell
+        cell_index_x = int(np.floor(particle.x / side_length))
+        cell_index_y = int(np.floor(particle.y / side_length))
+        cell_index = cell_index_x * num_cells_per_axis + cell_index_y
+        list_cells[cell_index].add_particle(particle_id)
+
 
     ############## Task 4 ends ################
 

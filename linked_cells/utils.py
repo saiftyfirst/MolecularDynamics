@@ -20,6 +20,20 @@ def get_successor_neighbor_delta_coordinate(a=1):
     neighbor_delta_coordinate = []
     ############# Task 1.1 begins ##################
 
+    # Cells are quadratic and their side-length is by definition
+    # The cutoff radius is not necessary since it cancels out
+    # cell_side_length = 
+
+    # We have to cyclicly considere more and more layers around the center cell
+    for x_offset_index in range(1, a+1):
+        for y_offset_index in range(1, a+1):
+            # We have to reduce the index by one since if a cell would partially
+            # lie in the cut-off radius then its point closest to the top right
+            # corner of the centered cell must be above its bottom left corner
+            if np.sqrt((x_offset_index - 1)**2 + (y_offset_index - 1)**2) < a:
+                neighbor_delta_coordinate.append(
+                    np.array([x_offset_index, y_offset_index])
+                )
     ############ Task 1.1 ends #####################
     return neighbor_delta_coordinate
 

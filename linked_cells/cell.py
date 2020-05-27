@@ -46,6 +46,25 @@ class Cell(object, metaclass=ABCMeta):
         self.neighbor_cell_index = []
         ############## Task 1.2 begins ##################
 
+        # Calculate the number of cells in x and y, respectively. The numbers
+        # are identical since the domain is a square and each cell is a square
+        num_cells_per_axis = int(np.ceil(domain / self.side_length))
+        
+        # Calculate the index of the cell in the x-y grid
+        #
+        # NOTE: I think this is not the best to do it here (speaking from an OOP
+        # point of view) ?!
+        cell_index_x = self.cell_index % num_cells_per_axis
+        cell_index_y = (self.cell_index - cell_index_x) / num_cells_per_axis
+
+        for neighbor_offset_index in neighbor_delta_coordinate:
+            neighbor_index_x = cell_index_x + neighbor_offset_index[0]
+            neighbor_index_y = cell_index_y + neighbor_offset_index[1]
+            if neighbor_index_x < num_cells_per_axis and neighbor_index_y < num_cells_per_axis:
+                # This is the index in the list
+                neighbor_index = self.cell_index + neighbor_offset_index[0] * num_cells_per_axis + neighbor_offset_index[1]
+                self.neighbor_cell_index.append(neighbor_index)
+
         ############## Task 1.2 ends ##################
         
     def __str__(self):

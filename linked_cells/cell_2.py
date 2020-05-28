@@ -35,7 +35,15 @@ class Cell_2(Cell):
         """calculates the potential on all particle inside a cell due to particles in the same cell
         """
         ############## Task 5.1 begins ################
-
+        # Iterate over all particles in the cell_local particle list
+        for particle_id, particle in enumerate(self.particle_list):
+            for neighbor_id, neighbor in enumerate(self.particle_list):
+                # Only calculate the potential with other particles and not the
+                # current particle since this would result in a zero distance
+                # and hence division by zero
+                if particle_id != neighbor_id:
+                    distance = particle.distance(neighbor)
+                    particle.phi += utils.lj_potential(distance)
         ############## Task 2.1 ends ################
     
     def p2p_neigbor_cells(self, list_cells):
@@ -47,7 +55,14 @@ class Cell_2(Cell):
             List of all cells
         """
         ############## Task 5.2 begins ################
-
+        # Iterate over all particles in the current cell
+        for particle in self.particle_list:
+            # Iterate over all neighboring cells
+            for neighbor_cell_id in self.neighbor_cell_index:
+                # Iterate over all particles in a neighbor cell
+                for neighbor_particle in list_cells[neighbor_cell_id].particle_list:
+                    distance = particle.distance(neighbor_particle)
+                    particle.phi += utils.lj_potential(distance)
         ############## Task 5.2 ends ################
                 
     def calculate_potential(self, list_cells):
@@ -59,7 +74,8 @@ class Cell_2(Cell):
             List of all cells
         """
         ############## Task 5.3 begins ################
-
+        self.p2p_self()
+        self.p2p_neigbor_cells(list_cells)
         ############## Task 5.3 ends ################
             
     def add_particle(self, particle):

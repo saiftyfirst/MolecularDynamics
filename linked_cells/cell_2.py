@@ -36,6 +36,12 @@ class Cell_2(Cell):
         """
         ############## Task 5.1 begins ################
 
+        for particle_id, particle in enumerate(self.particle_list):
+            for other_id, other in enumerate(self.particle_list):
+                if(particle_id != other_id):
+                    distance = particle.distance(other)
+                    particle.phi += utils.lj_potential(distance)
+
         ############## Task 2.1 ends ################
     
     def p2p_neigbor_cells(self, list_cells):
@@ -48,6 +54,12 @@ class Cell_2(Cell):
         """
         ############## Task 5.2 begins ################
 
+        for particle in self.particle_list:
+            for neighbor in self.neighbor_cell_index:
+                for other in list_cells[neighbor].particle_list:
+                    distance = particle.distance(other)
+                    particle.phi += utils.lj_potential(distance)
+
         ############## Task 5.2 ends ################
                 
     def calculate_potential(self, list_cells):
@@ -59,6 +71,9 @@ class Cell_2(Cell):
             List of all cells
         """
         ############## Task 5.3 begins ################
+
+        self.p2p_self()
+        self.p2p_neigbor_cells(list_cells)
 
         ############## Task 5.3 ends ################
             

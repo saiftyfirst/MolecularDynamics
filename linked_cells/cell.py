@@ -46,6 +46,55 @@ class Cell(object, metaclass=ABCMeta):
         self.neighbor_cell_index = []
         ############## Task 1.2 begins ##################
 
+        side_cells = int(np.ceil(domain / self.side_length))
+        cell_i = self.cell_index % side_cells
+        cell_j = int((self.cell_index - cell_i) / side_cells)
+
+        for offset in neighbor_delta_coordinate:
+            # Quadrant 1
+            neighbor_i = cell_i + offset[0]
+            neighbor_j = cell_j + offset[1]
+            if (neighbor_i < side_cells) and (neighbor_j < side_cells):
+                self.neighbor_cell_index.append(neighbor_i + side_cells*neighbor_j)
+            # Quadrant 2
+            neighbor_i = cell_i - offset[0]
+            neighbor_j = cell_j + offset[1]
+            if (neighbor_i > -1) and (neighbor_j < side_cells):
+                self.neighbor_cell_index.append(neighbor_i + side_cells*neighbor_j)
+            # Quadrant 3
+            neighbor_i = cell_i - offset[0]
+            neighbor_j = cell_j - offset[1]
+            if (neighbor_i > -1) and (neighbor_j > -1):
+                self.neighbor_cell_index.append(neighbor_i + side_cells*neighbor_j)
+            # Quadrant 4
+            neighbor_i = cell_i + offset[0]
+            neighbor_j = cell_j - offset[1]
+            if (neighbor_i < side_cells) and (neighbor_j > -1):
+                self.neighbor_cell_index.append(neighbor_i + side_cells*neighbor_j)
+
+        for i in range(1, self.a+1):
+            # Quadrant 1
+            neighbor_i = cell_i + i
+            neighbor_j = cell_j
+            if (neighbor_i < side_cells):
+                self.neighbor_cell_index.append(neighbor_i + side_cells*neighbor_j)
+            # Quadrant 2
+            neighbor_i = cell_i - i
+            neighbor_j = cell_j
+            if (neighbor_i > -1) and (neighbor_j < side_cells):
+                self.neighbor_cell_index.append(neighbor_i + side_cells*neighbor_j)
+            # Quadrant 3
+            neighbor_i = cell_i
+            neighbor_j = cell_j - i
+            if (neighbor_i > -1) and (neighbor_j > -1):
+                self.neighbor_cell_index.append(neighbor_i + side_cells*neighbor_j)
+            # Quadrant 4
+            neighbor_i = cell_i
+            neighbor_j = cell_j - i
+            if (neighbor_i < side_cells) and (neighbor_j > -1):
+                self.neighbor_cell_index.append(neighbor_i + side_cells*neighbor_j)
+
+
         ############## Task 1.2 ends ##################
         
     def __str__(self):

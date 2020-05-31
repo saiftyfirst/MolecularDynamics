@@ -40,6 +40,11 @@ class Cell_1(Cell):
         """
         ############## Task 3.1 begins ################
 
+        for index in self.particle_index:
+            for other in self.particle_index:
+                if not index == other:
+                    distance = list_particles[index].distance(list_particles[other]) 
+                    list_particles[index].phi += utils.lj_potential(distance)
         ############## Task 3.1 ends ################
     
     def p2p_neigbor_cells(self, list_particles, list_cells):
@@ -53,6 +58,12 @@ class Cell_1(Cell):
             List of all cells
         """
         ############## Task 3.2 begins ################
+        for index in self.particle_index:
+            for neighbor in self.neighbor_cell_index:
+                for other in list_cells[neighbor].particle_index:
+                    distance = list_particles[index].distance(list_particles[other]) 
+                    list_particles[index].phi += utils.lj_potential(distance)
+
 
         ############## Task 3.2 ends ################
                 
@@ -67,6 +78,9 @@ class Cell_1(Cell):
             List of all cells
         """
         ############## Task 3.3 begins ################
+
+        self.p2p_self(list_particles)
+        self.p2p_neigbor_cells(list_particles, list_cells)
 
         ############## Task 3.3 ends ################
             
@@ -114,7 +128,19 @@ def get_list_cell(r_c, neighbor_delta_coordinate, domain=1.0, a=1):
     list_cells = []
     side_length = r_c / a
     ############## Task 2 begins ################
-    
+
+    num_cells_side = int( np.ceil(domain / side_length) )
+
+    for j in range(num_cells_side):
+        for i in range(num_cells_side):
+            list_cells.append(Cell_1(   float(i) * side_length, 
+                                        float(j) * side_length, 
+                                        r_c, 
+                                        i + j*num_cells_side,
+                                        neighbor_delta_coordinate,
+                                        a,
+                                        domain  ))
+
     ############## Task 2 ends ################
     return list_cells
 
@@ -136,6 +162,17 @@ def assign_particle_to_cell(list_particles, list_cells, r_c, domain=1, a=1):
     """
     side_length = r_c / a
     ############## Task 4 begins ################
+
+    num_cells_side = int(np.ceil(domain / side_length))
+
+    particle_index = 0
+    for particle in list_particles:
+
+        x_loc = int(np.floor(particle.x / side_length))
+        y_loc = int(np.floor(particle.y / side_length))
+        cell_id = x_loc + y_loc * num_cells_side
+        list_cells[cell_id].add_particle(particle_index)
+        particle_index += 1
 
     ############## Task 4 ends ################
 

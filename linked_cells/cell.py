@@ -49,8 +49,30 @@ class Cell(object, metaclass=ABCMeta):
         
         self.neighbor_cell_index = []
         cells_per_axis = int(np.ceil(domain / self.side_length))
-        
-        # loop for each quadrant
+            
+        # for the cells along the x and y axes
+        for layer in range(1, self.a + 1):
+            layer_neighbors = []
+            # positive x direction
+            layer_neighbors.append(np.array([layer, 0]))
+            # positive y direction
+            layer_neighbors.append(np.array([0, layer]))
+            # negative x direction
+            layer_neighbors.append(np.array([-layer, 0]))
+            # negative y direction
+            layer_neighbors.append(np.array([0, -layer]))
+            
+            for direction in range(1, 5):
+                neighbor = layer_neighbors[direction - 1]
+                # determine the grid center of the neighbor
+                neighbor_center = self.cell_center + self.side_length * neighbor
+                
+                # if the neighbor is within the domain
+                if Cell._check_domain(neighbor_center, domain, direction) == True:
+                    neighbor_index = self.cell_index + neighbor[1] * cells_per_axis + neighbor[0]
+                    self.neighbor_cell_index.append(neighbor_index)
+           
+        # loop for each diagonal quadrant
         for quadrant in range(1, 5):
             
             # for each neighbor in the quadrant
@@ -71,11 +93,11 @@ class Cell(object, metaclass=ABCMeta):
         if quadrant == 1:
             return np.all(center < domain)
         elif quadrant == 2:
-            return center[0] >= 0 and center[1] < 1
+            return center[0] >= 0 and center[1] < domain
         elif quadrant == 3:
             return center[0] >= 0 and center[1] >= 0
         elif quadrant == 4:
-            return center[0] < 1 and center[1] >= 0
+            return center[0] < domain and center[1] >= 0
         else:
             raise('Something went wrong in cell implementation..')
     

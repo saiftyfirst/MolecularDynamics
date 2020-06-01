@@ -38,10 +38,18 @@ class Cell_1(Cell):
         list_particles: list
             List of all "Particle" objects
         """
-        ############## Task 3.1 begins ################
-
-        ############## Task 3.1 ends ################
-    
+        # filter out particles in current cell
+        cell_particles = np.array(list_particles)[self.particle_index]
+        
+        # iterate over all particles and calulcate the aggregate potential
+        for index, particle in enumerate(cell_particles):
+            # slice list to avoid double calculation
+            for neighbor in cell_particles[(index + 1):]:
+                distance = particle.distance(neighbor)
+                phi = utils.lj_potential(distance)
+                particle.phi += phi
+                neighbor.phi += phi
+            
     def p2p_neigbor_cells(self, list_particles, list_cells):
         """calculates the potential on all particle inside a cell due to particles in the neighor cells
         
@@ -52,9 +60,26 @@ class Cell_1(Cell):
         list_cells: list
             List of all cells
         """
-        ############## Task 3.2 begins ################
-
-        ############## Task 3.2 ends ################
+        # convenicence with np
+        all_particles = np.array(list_particles)
+        current_cell_particles = all_particles[self.particle_index]
+        
+        # filter out cells that are neighbors to current cell
+        neighbor_cells = np.array(list_cells)[self.neighbor_cell_index]
+        
+        # loop through each neighboring cell
+        for neighbor_cell in neighbor_cells:
+            
+            # list of all neighbor particles
+            neighbor_particles = all_particles[neighbor_cell.particle_index]
+            
+            # for each paricle in neighbor cell
+            for neighbor_particle in neighbor_particles:
+                
+                # calculate potenital on each particle of current cell
+                for current_cell_particle in current_cell_particles:
+                    distance = current_cell_particle.distance(neighbor_particle)
+                    current_cell_particle.phi += utils.lj_potential(distance)
                 
     def calculate_potential(self, list_particles, list_cells):
         """calculates the potential on all particle inside a cell
@@ -66,9 +91,8 @@ class Cell_1(Cell):
         list_cells: list
             List of all cells
         """
-        ############## Task 3.3 begins ################
-
-        ############## Task 3.3 ends ################
+        self.p2p_self(list_particles)
+        self.p2p_neigbor_cells(list_particles, list_cells)
             
     def add_particle(self, particle_index):
         """Append particle index at end of list_particles
@@ -111,11 +135,25 @@ def get_list_cell(r_c, neighbor_delta_coordinate, domain=1.0, a=1):
     ------
     list :  List of cells in row major format
     """
-    list_cells = []
     side_length = r_c / a
-    ############## Task 2 begins ################
+    cells_per_axis = int(np.ceil(domain / side_length))
+
     
-    ############## Task 2 ends ################
+    # determine lower left coordinates of all cells
+    axis_points = np.arange(0, domain, side_length)
+    cell_coordinates = np.array(list(product(axis_points, axis_points)))
+    
+    # use coordinates list to create list of cells
+    list_cells = [Cell_1(
+        lx = point[1],
+        ly = point[0],
+        r_c = r_c,
+        cell_index = int(point[1] * cells_per_axis + point[0] * cells_per_axis ** 2),
+        neighbor_delta_coordinate = neighbor_delta_coordinate,
+        a = a,
+        domain = domain
+    ) for point in cell_coordinates]
+    
     return list_cells
 
 def assign_particle_to_cell(list_particles, list_cells, r_c, domain=1, a=1):
@@ -135,10 +173,18 @@ def assign_particle_to_cell(list_particles, list_cells, r_c, domain=1, a=1):
         Variable linked cell parameter
     """
     side_length = r_c / a
-    ############## Task 4 begins ################
-
-    ############## Task 4 ends ################
-
+    cells_per_axis = int(np.ceil(domain / side_length))
+    
+    for index, particle in enumerate(list_particles):
+        
+        # calculate cell index
+        x_offset = int(np.floor(particle.x / side_length))
+        y_offset = int(np.floor(particle.y / side_length))
+        cell_index = x_offset + y_offset * cells_per_axis
+        
+        # assign particle to cell
+        list_cells[cell_index].add_particle(index)
+        
 def check_particle_assignment(N, list_cells):
     for cell in list_cells:
         assert (np.array(cell.particle_index, dtype=np.int) < N).all()

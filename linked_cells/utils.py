@@ -16,11 +16,16 @@ def get_successor_neighbor_delta_coordinate(a=1):
     a: int
         Variable linked-cell parameter
     """
+        
+    # determine all possible neighbor candidates
+    candidates = np.array(list(product(np.arange(1, a + 1), np.arange(1, a + 1))))
     
-    neighbor_delta_coordinate = []
-    ############# Task 1.1 begins ##################
+    # determine which candidates are actually in the radius of the center cell
+    cond = [np.sqrt((elem[0] - 1) ** 2 + (elem[1] - 1) ** 2) < a for elem in candidates]
 
-    ############ Task 1.1 ends #####################
+    # append cells that match condition to neighbor_delta_coordinate
+    neighbor_delta_coordinate = list(candidates[cond])
+    
     return neighbor_delta_coordinate
 
 def plot_all_cells(ax, list_cells, edgecolor='r',domain=1):
@@ -33,3 +38,4 @@ def plot_all_cells(ax, list_cells, edgecolor='r',domain=1):
     
 def get_mean_relative_error(direct_potential, linked_cell_potential):
     return np.mean(np.abs((direct_potential - linked_cell_potential) / direct_potential))
+    

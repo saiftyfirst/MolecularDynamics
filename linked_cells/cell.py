@@ -43,11 +43,42 @@ class Cell(object, metaclass=ABCMeta):
         domain: float (Optional value 1.0)
             Size of domain
         """
-        self.neighbor_cell_index = []
-        ############## Task 1.2 begins ##################
-
-        ############## Task 1.2 ends ##################
         
+        # to simplify the later work
+        neighbor_delta_coordinate = np.array(neighbor_delta_coordinate)
+        
+        self.neighbor_cell_index = []
+        cells_per_axis = int(np.ceil(domain / self.side_length))
+        
+        # loop for each quadrant
+        for quadrant in range(1, 5):
+            
+            # for each neighbor in the quadrant
+            for neighbor in neighbor_delta_coordinate:
+                # determine the grid center of the neighbor
+                neighbor_center = self.cell_center + self.side_length * neighbor
+                               
+                # if the neighbor is within the domain
+                if Cell._check_domain(neighbor_center, domain, quadrant) == True:
+                    neighbor_index = self.cell_index + neighbor[1] * cells_per_axis + neighbor[0]
+                    self.neighbor_cell_index.append(neighbor_index)
+            
+            # modify neighbor_delta_coordinate for next quadrant loop
+            neighbor_delta_coordinate[:, (quadrant - 1) % 2] *= -1
+    
+    @staticmethod
+    def _check_domain(center, domain, quadrant):
+        if quadrant == 1:
+            return np.all(center < domain)
+        elif quadrant == 2:
+            return center[0] >= 0 and center[1] < 1
+        elif quadrant == 3:
+            return center[0] >= 0 and center[1] >= 0
+        elif quadrant == 4:
+            return center[0] < 1 and center[1] >= 0
+        else:
+            raise('Something went wrong in cell implementation..')
+    
     def __str__(self):
         return 'Object of type cell with center {}'.format(self.cell_center)
     

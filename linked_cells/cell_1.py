@@ -37,18 +37,15 @@ class Cell_1(Cell):
         ----------
         list_particles: list
             List of all "Particle" objects
-        """
-        # filter out particles in current cell
-        cell_particles = np.array(list_particles)[self.particle_index]
-        
+        """     
         # iterate over all particles and calulcate the aggregate potential
-        for index, particle in enumerate(cell_particles):
+        for idx, particle_id in enumerate(self.particle_index):
             # slice list to avoid double calculation
-            for neighbor in cell_particles[(index + 1):]:
-                distance = particle.distance(neighbor)
+            for neighbor_id in self.particle_index[(idx + 1):]:
+                distance = list_particles[particle_id].distance(list_particles[neighbor_id])
                 phi = utils.lj_potential(distance)
-                particle.phi += phi
-                neighbor.phi += phi
+                list_particles[particle_id].phi += phi
+                list_particles[neighbor_id].phi += phi            
             
     def p2p_neigbor_cells(self, list_particles, list_cells):
         """calculates the potential on all particle inside a cell due to particles in the neighor cells
@@ -60,26 +57,19 @@ class Cell_1(Cell):
         list_cells: list
             List of all cells
         """
-        # convenicence with np
-        all_particles = np.array(list_particles)
-        current_cell_particles = all_particles[self.particle_index]
-        
-        # filter out cells that are neighbors to current cell
-        neighbor_cells = np.array(list_cells)[self.neighbor_cell_index]
-        
-        # loop through each neighboring cell
-        for neighbor_cell in neighbor_cells:
+                    
+        # for each particle in current cell    
+        for current_cell_particle in self.particle_index:
             
-            # list of all neighbor particles
-            neighbor_particles = all_particles[neighbor_cell.particle_index]
-            
-            # for each paricle in neighbor cell
-            for neighbor_particle in neighbor_particles:
+            # for each neighbor cell
+            for neighbor_cell_id in self.neighbor_cell_index:
                 
-                # calculate potenital on each particle of current cell
-                for current_cell_particle in current_cell_particles:
-                    distance = current_cell_particle.distance(neighbor_particle)
-                    current_cell_particle.phi += utils.lj_potential(distance)
+                # for each particle in neighbor cell
+                for neighbor_particle_idx in list_cells[neighbor_cell_id].particle_index:
+                    distance = list_particles[current_cell_particle].distance(list_particles[neighbor_particle_idx])
+                    phi = utils.lj_potential(distance)
+                    list_particles[current_cell_particle].phi += phi
+
                 
     def calculate_potential(self, list_particles, list_cells):
         """calculates the potential on all particle inside a cell

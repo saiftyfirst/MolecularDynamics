@@ -34,9 +34,14 @@ class Cell_2(Cell):
     def p2p_self(self):
         """calculates the potential on all particle inside a cell due to particles in the same cell
         """
-        ############## Task 5.1 begins ################
-
-        ############## Task 2.1 ends ################
+        for index, particle in enumerate(self.particle_list):
+            
+            for neighbor in self.particle_list[(index + 1):]:
+                
+                distance = particle.distance(neighbor)
+                phi = utils.lj_potential(distance)
+                particle.phi += phi
+                neighbor.phi += phi
     
     def p2p_neigbor_cells(self, list_cells):
         """calculates the potential on all particle inside a cell due to particles in the neighor cells
@@ -46,10 +51,16 @@ class Cell_2(Cell):
         list_cells: list
             List of all cells
         """
-        ############## Task 5.2 begins ################
-
-        ############## Task 5.2 ends ################
-                
+        for particle in self.particle_list:
+            
+            for neighbor_cell_id in self.neighbor_cell_index:
+            
+                for neighbor in list_cells[neighbor_cell_id].particle_list:
+                    
+                    distance = particle.distance(neighbor)
+                    particle.phi = utils.lj_potential(distance)
+            
+        
     def calculate_potential(self, list_cells):
         """calculates the potential on all particle inside a cell
         
@@ -58,9 +69,8 @@ class Cell_2(Cell):
         list_cells: list
             List of all cells
         """
-        ############## Task 5.3 begins ################
-
-        ############## Task 5.3 ends ################
+        self.p2p_self()
+        self.p2p_neigbor_cells(list_cells)
             
     def add_particle(self, particle):
         """Append particle index at end of list_particles
